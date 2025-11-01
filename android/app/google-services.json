@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "249690986045",
+    "project_id": "mindmirror-99dc9",
+    "storage_bucket": "mindmirror-99dc9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:249690986045:android:f5c8b8ee11f061199d7c54",
+        "android_client_info": {
+          "package_name": "com.example.mindmirrorapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtWGtVIf8-7drBi_RwJN30JGBbj2rkF-Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
