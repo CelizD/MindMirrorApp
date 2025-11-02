@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Para formatear fechas
 import 'firestore_service.dart';
-import 'stats_screen.dart'; // Importamos la pantalla de estadísticas
+import 'stats_screen.dart'; // Pantalla de estadísticas
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,31 +17,16 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _textController = TextEditingController();
   bool _isLoading = false;
 
-  // --- (ACTUALIZADO) Función de Guardar ---
+  // --- Guardar entrada ---
   Future<void> _saveEntry() async {
-    if (_textController.text.isEmpty) {
-      // No guardar si está vacío
-      return;
-    }
-    
-    // Mostramos el círculo de carga
-    setState(() {
-      _isLoading = true;
-    });
+    if (_textController.text.trim().isEmpty) return;
+
+    setState(() => _isLoading = true);
 
     try {
-      // Guardamos en Firestore
       await _firestoreService.addJournalEntry(_textController.text);
-      
-      // Limpiamos el texto
       _textController.clear();
 
-      // Ocultamos el círculo de carga
-      setState(() {
-        _isLoading = false;
-      });
-
-      // Mostramos un mensaje de éxito
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -51,25 +35,21 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       }
-
     } catch (e) {
-      // Ocultamos el círculo de carga
-      setState(() {
-        _isLoading = false;
-      });
-      // Mostramos error
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al guardar: ${e.toString()}'),
+            content: Text('Error al guardar: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  // --- (NUEVO) Función para ir a Estadísticas ---
+  // --- Ir a estadísticas ---
   void _goToStatsPage() {
     Navigator.push(
       context,
@@ -77,22 +57,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- Función para Cerrar Sesión ---
+  // --- Cerrar sesión ---
   void _signOut() {
     FirebaseAuth.instance.signOut();
   }
 
-  // --- Función para obtener Emoji ---
+  // --- Emoji de sentimiento ---
   String _getSentimentEmoji(num? score) {
-    if (score == null) {
-      return '⏳'; // Analizando...
-    }
+    if (score == null) return '⏳'; // Aún analizando
     if (score > 0.2) return '😊'; // Positivo
     if (score < -0.2) return '😞'; // Negativo
     return '😐'; // Neutral
   }
 
-  // --- Función para Borrar Entrada ---
+  // --- Eliminar entrada ---
   Future<void> _deleteEntry(String docId) async {
     try {
       await _firestoreService.deleteJournalEntry(docId);
@@ -108,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al eliminar: ${e.toString()}'),
+            content: Text('Error al eliminar: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -116,41 +94,34 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // --- (MODIFICADO) Fondo gris ---
-      backgroundColor: Colors.grey[200], 
-
-      // --- (MODIFICADO) AppBar moderna ---
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
         title: const Text('Mi Diario'),
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         actions: [
-          // Botón de Estadísticas
           IconButton(
             icon: const Icon(Icons.bar_chart_rounded),
-            onPressed: _goToStatsPage,
             tooltip: 'Estadísticas',
+            onPressed: _goToStatsPage,
           ),
-          // Botón de Cerrar Sesión
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: _signOut,
             tooltip: 'Cerrar Sesión',
+            onPressed: _signOut,
           ),
         ],
       ),
       body: Column(
         children: [
-          // --- (MODIFICADO) Sección para nueva entrada ---
+          // --- Sección de nueva entrada ---
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                // --- (MODIFICADO) Campo de texto moderno ---
                 TextField(
                   controller: _textController,
                   maxLines: 4,
@@ -160,13 +131,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none, // Sin borde
+                      borderSide: BorderSide.none,
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                
-                // --- (MODIFICADO) Botón moderno ---
                 _isLoading
                     ? const CircularProgressIndicator()
                     : SizedBox(
@@ -189,26 +158,21 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          
-          // --- Separador ---
+
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0),
             child: Divider(thickness: 1),
           ),
-          
-          // --- Título de la lista ---
+
           const Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
               'Entradas Anteriores:',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
 
-          // --- Lista de Entradas ---
+          // --- Lista de entradas ---
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: _firestoreService.getJournalEntries(),
@@ -233,39 +197,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemBuilder: (context, index) {
                     final doc = entries[index];
                     final entry = doc.data() as Map<String, dynamic>;
-                    
-                    final String text = entry['text'] ?? 'Sin texto';
-                    final Timestamp? timestamp = entry['timestamp'];
-                    final num? score = entry['sentimentScore'];
+                    final text = entry['text'] ?? 'Sin texto';
+                    final timestamp = entry['timestamp'] as Timestamp?;
+                    final score = entry['sentimentScore'] as num?;
+                    final emoji = _getSentimentEmoji(score);
 
-                    final String date = timestamp != null
-                        ? DateFormat('dd/MM/yyyy - hh:mm a').format(timestamp.toDate())
+                    final date = timestamp != null
+                        ? DateFormat('dd/MM/yyyy - hh:mm a')
+                            .format(timestamp.toDate())
                         : 'Sin fecha';
-                    
-                    final String emoji = _getSentimentEmoji(score);
-                    
+
                     return Dismissible(
-                      // Key única para el widget
-                      key: Key(doc.id), 
-                      // Dirección del deslizamiento
-                      direction: DismissDirection.endToStart, 
-                      // Qué hacer al deslizar
-                      onDismissed: (direction) {
-                        _deleteEntry(doc.id);
-                      },
-                      // Fondo rojo que aparece al deslizar
+                      key: Key(doc.id),
+                      direction: DismissDirection.endToStart,
+                      onDismissed: (_) => _deleteEntry(doc.id),
                       background: Container(
                         color: Colors.red[700],
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         margin: const EdgeInsets.symmetric(vertical: 4),
-                        child: const Icon(
-                          Icons.delete_forever,
-                          color: Colors.white,
-                        ),
+                        child: const Icon(Icons.delete_forever,
+                            color: Colors.white),
                       ),
                       child: Card(
-                        // --- (MODIFICADO) Bordes redondeados ---
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),
                         ),
@@ -273,12 +227,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         margin: const EdgeInsets.symmetric(vertical: 6.0),
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(16.0),
-                          // Emoji del Sentimiento
-                          leading: Text(
-                            emoji,
-                            style: const TextStyle(fontSize: 30),
-                          ),
-                          // Texto de la entrada
+                          leading: Text(emoji,
+                              style: const TextStyle(fontSize: 30)),
                           title: Text(
                             text,
                             style: const TextStyle(
@@ -288,7 +238,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          // Fecha
                           subtitle: Padding(
                             padding: const EdgeInsets.only(top: 8.0),
                             child: Text(
@@ -312,4 +261,3 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
-

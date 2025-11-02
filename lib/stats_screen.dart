@@ -7,20 +7,18 @@ import 'firestore_service.dart';
 class StatsScreen extends StatelessWidget {
   const StatsScreen({super.key});
 
-  // --- (NUEVO) Degradado para el gráfico de líneas ---
+  // --- Degradado para el gráfico de líneas ---
   List<Color> get _lineChartGradientColors => [
         Colors.indigoAccent,
         Colors.purpleAccent,
       ];
 
-  // --- Función para obtener el Emoji (la movemos aquí para reusarla) ---
+  // --- Función para obtener el Emoji ---
   String _getSentimentEmoji(num? score, {double size = 24}) {
-    if (score == null) {
-      return '⏳'; // Analizando...
-    }
-    if (score > 0.2) return '😊'; // Positivo
-    if (score < -0.2) return '😞'; // Negativo
-    return '😐'; // Neutral
+    if (score == null) return '⏳';
+    if (score > 0.2) return '😊';
+    if (score < -0.2) return '😞';
+    return '😐';
   }
 
   @override
@@ -43,7 +41,7 @@ class StatsScreen extends StatelessWidget {
             return _buildEmptyState('No hay datos suficientes para mostrar estadísticas.');
           }
 
-          // --- 1. PROCESAMIENTO DE DATOS ---
+          // --- Procesamiento de datos ---
           final entries = snapshot.data!.docs;
           final List<FlSpot> lineChartSpots = [];
           int positiveCount = 0;
@@ -58,16 +56,13 @@ class StatsScreen extends StatelessWidget {
             final num? score = entry['sentimentScore'];
 
             if (timestamp != null && score != null) {
-              // Datos para el Gráfico de Líneas
               lineChartSpots.add(
                 FlSpot(
-                  timestamp.millisecondsSinceEpoch.toDouble(), // Eje X (Fecha)
-                  score.toDouble(), // Eje Y (Sentimiento)
+                  timestamp.millisecondsSinceEpoch.toDouble(),
+                  score.toDouble(),
                 ),
               );
 
-              // Datos para el Gráfico de Pastel
-              // (CORREGIDO) Llaves {} añadidas
               if (score > 0.2) {
                 positiveCount++;
               } else if (score < -0.2) {
@@ -75,54 +70,42 @@ class StatsScreen extends StatelessWidget {
               } else {
                 neutralCount++;
               }
-              
+
               totalScore += score;
               entriesWithScore++;
             }
           }
-          
-          // Ordenar datos para el gráfico de líneas
+
+          // Ordenar datos por fecha
           lineChartSpots.sort((a, b) => a.x.compareTo(b.x));
 
-          // Calcular datos de resumen
           final int totalEntries = entries.length;
-          final double averageScore = entriesWithScore == 0 ? 0 : totalScore / entriesWithScore;
+          final double averageScore =
+              entriesWithScore == 0 ? 0 : totalScore / entriesWithScore;
           final int totalAnalyzed = positiveCount + neutralCount + negativeCount;
 
-          // --- 2. CONSTRUCCIÓN DE LA PANTALLA ---
+          // --- Construcción de la pantalla ---
           return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- Sección de Resumen ---
                   _buildSummarySection(totalEntries, averageScore),
-                  
                   const SizedBox(height: 30),
-
-                  // --- Sección de Gráfico de Pastel ---
                   if (totalAnalyzed > 0)
-                    _buildPieChartSection(positiveCount, neutralCount, negativeCount, totalAnalyzed),
-                  
+                    _buildPieChartSection(
+                        positiveCount, neutralCount, negativeCount, totalAnalyzed),
                   const SizedBox(height: 30),
-
-                  // --- Sección de Gráfico de Líneas ---
                   const Text(
                     'Tu Ánimo a lo Largo del Tiempo',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 30),
                   if (lineChartSpots.length < 2)
-                    _buildEmptyState('Necesitas al menos 2 entradas analizadas para ver una tendencia.')
+                    _buildEmptyState('Necesitas al menos 2 entradas para ver una tendencia.')
                   else
-                    SizedBox(
-                      height: 300,
-                      child: _buildLineChart(lineChartSpots),
-                    ),
+                    SizedBox(height: 300, child: _buildLineChart(lineChartSpots)),
                 ],
               ),
             ),
@@ -132,7 +115,7 @@ class StatsScreen extends StatelessWidget {
     );
   }
 
-  // --- Widget: Mensaje de "Vacío" ---
+  // --- Estado vacío ---
   Widget _buildEmptyState(String message) {
     return Center(
       child: Padding(
@@ -146,7 +129,7 @@ class StatsScreen extends StatelessWidget {
     );
   }
 
-  // --- Widget: Sección de Resumen ---
+  // --- Resumen ---
   Widget _buildSummarySection(int totalEntries, double averageScore) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,22 +144,20 @@ class StatsScreen extends StatelessWidget {
             Expanded(
               child: Card(
                 elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      Text(
-                        'Total de Entradas',
-                        style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                      ),
+                      Text('Total de Entradas',
+                          style:
+                              TextStyle(fontSize: 16, color: Colors.grey[700])),
                       const SizedBox(height: 10),
                       Text(
                         totalEntries.toString(),
                         style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            fontSize: 32, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -187,22 +168,20 @@ class StatsScreen extends StatelessWidget {
             Expanded(
               child: Card(
                 elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      Text(
-                        'Ánimo Promedio',
-                        style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                      ),
+                      Text('Ánimo Promedio',
+                          style:
+                              TextStyle(fontSize: 16, color: Colors.grey[700])),
                       const SizedBox(height: 10),
                       Text(
                         _getSentimentEmoji(averageScore, size: 32),
                         style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
+                            fontSize: 32, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -215,8 +194,9 @@ class StatsScreen extends StatelessWidget {
     );
   }
 
-  // --- Widget: Sección de Gráfico de Pastel ---
-  Widget _buildPieChartSection(int positive, int neutral, int negative, int total) {
+  // --- Gráfico de pastel ---
+  Widget _buildPieChartSection(
+      int positive, int neutral, int negative, int total) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -230,21 +210,20 @@ class StatsScreen extends StatelessWidget {
           child: PieChart(
             PieChartData(
               borderData: FlBorderData(show: false),
-              sectionsSpace: 0, // <-- (MODIFICADO) Sin espacio para un look sólido
-              centerSpaceRadius: 60, // <-- (MODIFICADO) Más grande para look "dona"
+              sectionsSpace: 0,
+              centerSpaceRadius: 60,
               sections: [
-                // Sección Positiva
                 PieChartSectionData(
                   color: Colors.green[400],
                   value: positive.toDouble(),
-                  title: '${((positive / total) * 100).toStringAsFixed(0)}% 😊',
+                  title:
+                      '${((positive / total) * 100).toStringAsFixed(0)}% 😊',
                   radius: 50,
                   titleStyle: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white), // <-- (MODIFICADO) Texto blanco
+                      color: Colors.white),
                 ),
-                // Sección Neutral
                 PieChartSectionData(
                   color: Colors.grey[500],
                   value: neutral.toDouble(),
@@ -253,9 +232,8 @@ class StatsScreen extends StatelessWidget {
                   titleStyle: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white), // <-- (MODIFICADO) Texto blanco
+                      color: Colors.white),
                 ),
-                // Sección Negativa
                 PieChartSectionData(
                   color: Colors.red[400],
                   value: negative.toDouble(),
@@ -264,7 +242,7 @@ class StatsScreen extends StatelessWidget {
                   titleStyle: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white), // <-- (MODIFICADO) Texto blanco
+                      color: Colors.white),
                 ),
               ],
             ),
@@ -274,29 +252,25 @@ class StatsScreen extends StatelessWidget {
     );
   }
 
-  // --- Widget: Sección de Gráfico de Líneas ---
+  // --- Gráfico de líneas ---
   Widget _buildLineChart(List<FlSpot> spots) {
-    // Calculamos el intervalo para las etiquetas del eje X
-    double xInterval = (spots.last.x - spots.first.x) / 4; // Intentamos 4 etiquetas
+    double xInterval = (spots.last.x - spots.first.x) / 4;
     if (spots.length < 5 || xInterval <= 0) {
-      xInterval = (spots.last.x - spots.first.x) / 2; // Menos etiquetas si hay pocos datos
+      xInterval = (spots.last.x - spots.first.x) / 2;
     }
-    if (spots.length == 1) {
-      xInterval = spots.first.x; // Un solo punto
-    }
+    if (spots.length == 1) xInterval = spots.first.x;
 
     return LineChart(
       LineChartData(
-        // --- (NUEVO) Tooltips Interactivos ---
         lineTouchData: LineTouchData(
           handleBuiltInTouches: true,
           touchTooltipData: LineTouchTooltipData(
-            // (CORREGIDO) Parámetro 'tooltipBgColor' cambiado a 'getTooltipColor'
-            getTooltipColor: (spot) => Colors.black.withAlpha((255 * 0.8).round()), // (CORREGIDO) .withOpacity
+            getTooltipColor: (spot) =>
+                Colors.black.withAlpha((255 * 0.8).round()),
             getTooltipItems: (List<LineBarSpot> touchedSpots) {
               return touchedSpots.map((spot) {
                 return LineTooltipItem(
-                  '${_getSentimentEmoji(spot.y)} ${spot.y.toStringAsFixed(2)}', // Muestra '😊 0.80'
+                  '${_getSentimentEmoji(spot.y)} ${spot.y.toStringAsFixed(2)}',
                   const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -306,23 +280,19 @@ class StatsScreen extends StatelessWidget {
             },
           ),
         ),
-
-        // --- (MODIFICADO) Bordes y Títulos ---
-        borderData: FlBorderData(show: false), // Más limpio
-        gridData: const FlGridData(show: false), // Más limpio
+        borderData: FlBorderData(show: false),
+        gridData: const FlGridData(show: false),
         titlesData: FlTitlesData(
           show: true,
-          // Títulos del Eje Y (Sentimiento)
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
               getTitlesWidget: (value, meta) {
                 String text = '';
-                if (value == 1) text = '😊'; // Positivo
-                if (value == 0) text = '😐'; // Neutral
-                if (value == -1) text = '😞'; // Negativo
-
+                if (value == 1) text = '😊';
+                if (value == 0) text = '😐';
+                if (value == -1) text = '😞';
                 if (value == 1 || value == 0 || value == -1) {
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
@@ -333,20 +303,18 @@ class StatsScreen extends StatelessWidget {
               },
             ),
           ),
-          // Ocultamos títulos de arriba y derecha
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          // Títulos del Eje X (Fecha)
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
               interval: xInterval,
               getTitlesWidget: (value, meta) {
-                // Convertimos el milisegundo de nuevo a Fecha
                 final DateTime date =
                     DateTime.fromMillisecondsSinceEpoch(value.toInt());
-                // Formato simple: Día/Mes
                 return Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Text(DateFormat('dd/MM').format(date)),
@@ -355,29 +323,21 @@ class StatsScreen extends StatelessWidget {
             ),
           ),
         ),
-        // --- Rango de Y (Sentimiento) ---
-        minY: -1, // -1 (Negativo)
-        maxY: 1, // +1 (Positivo)
-
-        // --- (MODIFICADO) Datos de la Línea con Degradado ---
+        minY: -1,
+        maxY: 1,
         lineBarsData: [
           LineChartBarData(
-            spots: spots, // ¡Nuestros datos!
+            spots: spots,
             isCurved: true,
-            // (NUEVO) Degradado para la línea
-            gradient: LinearGradient(
-              colors: _lineChartGradientColors,
-            ),
-            barWidth: 5, // Un poco más gruesa
+            gradient: LinearGradient(colors: _lineChartGradientColors),
+            barWidth: 5,
             isStrokeCapRound: true,
-            dotData: const FlDotData(show: false), // Ocultamos los puntos fijos
-            // (NUEVO) Degradado para el área bajo la línea
+            dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
               gradient: LinearGradient(
                 colors: _lineChartGradientColors
-                    // (CORREGIDO) .withOpacity
-                    .map((color) => color.withAlpha((255 * 0.3).round())) 
+                    .map((color) => color.withAlpha((255 * 0.3).round()))
                     .toList(),
               ),
             ),
@@ -387,4 +347,3 @@ class StatsScreen extends StatelessWidget {
     );
   }
 }
-

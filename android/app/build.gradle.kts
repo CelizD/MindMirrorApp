@@ -1,3 +1,4 @@
+// --- IMPORT NECESARIO ---
 import java.util.Properties
 
 plugins {
@@ -6,6 +7,7 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// --- CARGA DE PROPIEDADES LOCALES ---
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
@@ -15,16 +17,24 @@ if (localPropertiesFile.exists()) {
 val flutterVersionCode = localProperties.getProperty("flutter.versionCode") ?: "1"
 val flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "1.0"
 
+// --- CONFIGURACIÓN ANDROID ---
 android {
     namespace = "com.example.mindmirrorapp"
-    compileSdk = 35 // Usamos 35 como en tu intento anterior
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "com.example.mindmirrorapp"
+        minSdk = flutter.minSdkVersion
+        targetSdk = 35
+        versionCode = flutterVersionCode.toInt()
+        versionName = flutterVersionName
+        multiDexEnabled = true
+    }
 
     compileOptions {
-        // Habilita desugaring (para notificaciones)
-        isCoreLibraryDesugaringEnabled = true 
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -35,30 +45,27 @@ android {
         getByName("main").java.srcDirs("src/main/kotlin")
     }
 
-    defaultConfig {
-        applicationId = "com.example.mindmirrorapp"
-        minSdk = flutter.minSdkVersion // Requerido por flutter_local_notifications
-        targetSdk = 35
-        versionCode = flutterVersionCode.toInt()
-        versionName = flutterVersionName
-        multiDexEnabled = true
-    }
-
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
+        debug {
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
 
+// --- CONFIGURACIÓN DE FLUTTER ---
 flutter {
     source = "../.."
 }
 
+// --- DEPENDENCIAS ---
 dependencies {
-    // Librería para desugaring (para notificaciones)
-    // ACTUALIZADO: Cambiado de 2.0.4 a 2.1.4 (o más nuevo, 2.2.0 es seguro)
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.2.0")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("com.google.firebase:firebase-analytics")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
-

@@ -9,23 +9,37 @@ class AuthGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder(
-        // StreamBuilder escucha constantemente los cambios en el estado de autenticación
+      body: StreamBuilder<User?>(
+        // Escucha en tiempo real los cambios de autenticación
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          // 1. Si está procesando, muestra un círculo de carga
+          // 1️⃣ Mientras se conecta al stream → muestra un indicador de carga
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Colors.indigo,
+                strokeWidth: 3,
+              ),
+            );
           }
 
-          // 2. Si el snapshot TIENE DATOS, significa que el usuario está logueado
+          // 2️⃣ Si ocurre un error → mostrar un mensaje claro
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text(
+                '⚠️ Ocurrió un error al conectar con el servidor.\nIntenta de nuevo más tarde.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+            );
+          }
+
+          // 3️⃣ Si hay un usuario autenticado → ir a HomeScreen
           if (snapshot.hasData) {
-            // Muestra la pantalla principal de la app
             return const HomeScreen();
           }
 
-          // 3. Si no tiene datos, el usuario no está logueado
-          // Muestra la pantalla de inicio de sesión
+          // 4️⃣ Si no hay sesión iniciada → mostrar LoginScreen
           return const LoginScreen();
         },
       ),

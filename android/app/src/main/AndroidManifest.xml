@@ -1,13 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- (NUEVO) Permiso para Notificaciones en Android 13+ -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- (NUEVOS) Permisos -->
+    <!-- Notificaciones (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Alarmas exactas (Android 13+ y 14) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- (Opcional, recomendado) Permitir recibir al arrancar -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <!-- (NUEVO) Ícono para notificaciones -->
     <application
         android:label="MindMirror"
         android:name="${applicationName}"
-        android:icon="@drawable/notification_icon"> 
+        android:icon="@drawable/notification_icon">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -16,36 +22,46 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="false"
             android:windowSoftInputMode="adjustResize">
-            <!-- Specifies an Android theme to apply to this Activity as
-                 soon as the Android process has started. This theme is visible
-                 to the user while the Flutter UI initializes. After that,
-                 this theme continues to determine the Window background behind
-                 the Flutter UI. -->
+
+            <!-- Tema visible mientras Flutter carga -->
             <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
+
+            <!-- Punto de entrada principal -->
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+
+        <!-- Registro de plugin de Flutter -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-    </application>
-    <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility?hl=en and
-         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
 
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+        <!-- (NUEVO) Mantener recordatorios tras reiniciar -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- (NUEVO) Receptor para mostrar notificaciones -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
+    </application>
+
+    <!-- Permitir que el sistema busque actividades que procesen texto -->
     <queries>
         <intent>
-            <action android:name="android.content.Intent.ACTION_PROCESS_TEXT"/>
-            <data android:mimeType="text/plain"/>
+            <action android:name="android.content.Intent.ACTION_PROCESS_TEXT" />
+            <data android:mimeType="text/plain" />
         </intent>
     </queries>
-</manifest>
 
+</manifest>
