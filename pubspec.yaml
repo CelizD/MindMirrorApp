@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.2
+  sdk: '>=3.9.2 <4.0.0' # Corregido: sin espacios extraños
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -41,10 +41,16 @@ dependencies:
   intl: ^0.20.2
   flutter_local_notifications: ^19.5.0
   timezone: ^0.10.1
+  shared_preferences: ^2.5.3
+  # --- PAQUETE DE IA (VERSIÓN CORREGIDA) ---
+  google_generative_ai: ^0.4.7
+  # --- PAQUETE DE FUNCTIONS (PARA EL PLAN B) ---
+  cloud_functions: ^5.0.1
+
 
 dev_dependencies:
   flutter_test:
-    sdk: flutter
+    sdk: flutter # <-- ESTA LÍNEA ES IMPORTANTE
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -79,7 +85,7 @@ flutter:
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
-  # example:
+  Example:
   # fonts:
   #   - family: Schyler
   #     fonts:
@@ -94,3 +100,4 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+

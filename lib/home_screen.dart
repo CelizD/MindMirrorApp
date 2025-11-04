@@ -1,12 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Para formatear fechas
+import 'package:intl/intl.dart';
+import 'package:mindmirrorapp/gemini_service.dart'; // <-- IMPORTANTE
 import 'firestore_service.dart';
-import 'stats_screen.dart'; // Pantalla de estadísticas
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  // (NUEVO) Acepta la pregunta generada
+  final String? generatedQuestion;
+
+  const HomeScreen({
+    super.key,
+    this.generatedQuestion, // <-- Constructor actualizado
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -14,18 +19,51 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final FirestoreService _firestoreService = FirestoreService();
+  final GeminiService _geminiService = GeminiService(); // Instancia de IA
   final TextEditingController _textController = TextEditingController();
   bool _isLoading = false;
+  bool _isGeneratingPrompt = false; // Estado para el botón "💡"
+
+  // (NUEVO) Estado para guardar la pregunta
+  String? _generatedPrompt;
+
+  @override
+  void initState() {
+    super.initState();
+    // Guarda la pregunta recibida del check-in
+    _generatedPrompt = widget.generatedQuestion;
+  }
+
+  // --- Función para el botón "💡" ---
+  void _generatePrompt() async {
+    setState(() => _isGeneratingPrompt = true);
+    try {
+      // Llama a la OTRA función de Gemini, pasando un estado de ánimo genérico
+      final suggestion =
+          await _geminiService.generateJournalSuggestion("un poco reflexivo/a");
+      setState(() {
+        _generatedPrompt = suggestion; // Muestra la nueva sugerencia
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al generar sugerencia: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGeneratingPrompt = false);
+    }
+  }
 
   // --- Guardar entrada ---
   Future<void> _saveEntry() async {
     if (_textController.text.trim().isEmpty) return;
-
     setState(() => _isLoading = true);
-
     try {
       await _firestoreService.addJournalEntry(_textController.text);
       _textController.clear();
+      // (NUEVO) Limpia la sugerencia después de guardar
+      setState(() => _generatedPrompt = null);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -47,19 +85,6 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  // --- Ir a estadísticas ---
-  void _goToStatsPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const StatsScreen()),
-    );
-  }
-
-  // --- Cerrar sesión ---
-  void _signOut() {
-    FirebaseAuth.instance.signOut();
   }
 
   // --- Emoji de sentimiento ---
@@ -102,17 +127,20 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Mi Diario'),
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bar_chart_rounded),
-            tooltip: 'Estadísticas',
-            onPressed: _goToStatsPage,
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Cerrar Sesión',
-            onPressed: _signOut,
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          tooltip: 'Menú',
+          onPressed: () {
+            // TODO: Implementar un Drawer (menú lateral) más adelante
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Menú próximamente...'),
+                  duration: Duration(seconds: 1)),
+            );
+          },
+        ),
+        actions: const [
+          // Los botones de Stats y Settings se movieron a profile_screen.dart
         ],
       ),
       body: Column(
@@ -122,6 +150,21 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
+                // (NUEVO) Muestra la pregunta generada si existe
+                if (_generatedPrompt != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: Text(
+                      _generatedPrompt!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.black54),
+                    ),
+                  ),
+
                 TextField(
                   controller: _textController,
                   maxLines: 4,
@@ -155,6 +198,24 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
+                const SizedBox(height: 8),
+                // (NUEVO) Botón de sugerencia de IA
+                if (_isGeneratingPrompt)
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                else
+                  TextButton(
+                    onPressed: _generatePrompt,
+                    child: const Text(
+                      '💡 ¿No sabes qué escribir?',
+                      style: TextStyle(color: Colors.indigo),
+                    ),
+                  )
               ],
             ),
           ),
@@ -261,3 +322,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+

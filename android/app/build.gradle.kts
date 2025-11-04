@@ -20,12 +20,12 @@ val flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "
 // --- CONFIGURACIÓN ANDROID ---
 android {
     namespace = "com.example.mindmirrorapp"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.mindmirrorapp"
         minSdk = flutter.minSdkVersion
-        targetSdk = 35
+        targetSdk = 36
         versionCode = flutterVersionCode.toInt()
         versionName = flutterVersionName
         multiDexEnabled = true

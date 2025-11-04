@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -16,7 +17,7 @@ class NotificationService {
 
   Future<void> init() async {
     // --- Inicializar zona horaria ---
-    tz.initializeTimeZones();
+    tz.initializeTimeZones(); // <-- Corrección de la última vez (sin await)
 
     // --- Configuración Android ---
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -51,15 +52,22 @@ class NotificationService {
     }
   }
 
-  // --- Programar notificación diaria sin alarmas exactas ---
-  Future<void> scheduleDailyReminder() async {
-    final next8PM = _nextInstanceOf8PM();
+  // --- (MODIFICADO) Programar notificación con hora personalizada ---
+  Future<void> scheduleDailyReminder(TimeOfDay time) async {
+    // --- ✅ ¡NUEVA LÍNEA! ---
+    // Asegúrate de que la zona horaria esté inicializada antes de usar tz.local
+    tz.initializeTimeZones();
+
+    // Cancela cualquier notificación anterior para evitar duplicados
+    await flutterLocalNotificationsPlugin.cancelAll();
+
+    final nextInstance = _nextInstanceOf(time);
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       0,
       '¡Es hora de tu registro diario!',
       'Tómate un momento para registrar cómo te sientes en MindMirror.',
-      next8PM,
+      nextInstance,
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'mindmirror_daily_reminder_channel',
@@ -76,21 +84,23 @@ class NotificationService {
           presentSound: true,
         ),
       ),
-      // 🔹 AQUÍ el cambio clave:
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
     );
 
-    print("Notificación programada para las 8 PM sin alarma exacta.");
+    debugPrint(
+        "Notificación programada para las ${time.hour}:${time.minute} sin alarma exacta.");
   }
 
-  tz.TZDateTime _nextInstanceOf8PM() {
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    tz.TZDateTime scheduledDate =
-        tz.TZDateTime(tz.local, now.year, now.month, now.day, 20);
+  // --- (MODIFICADO) Calcula la próxima ocurrencia de la hora seleccionada ---
+  tz.TZDateTime _nextInstanceOf(TimeOfDay time) {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local); // <-- Esta línea causaba el error
+    tz.TZDateTime scheduledDate = tz.TZDateTime(
+        tz.local, now.year, now.month, now.day, time.hour, time.minute);
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     return scheduledDate;
   }
 }
+
