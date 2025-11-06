@@ -1,14 +1,14 @@
 // Importa las herramientas de Firebase Functions
-const { onDocumentCreated } = require("firebase-functions/v2/firestore");
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { log } = require("firebase-functions/logger");
+const {onDocumentCreated} = require("firebase-functions/v2/firestore");
+const {onCall, HttpsError} = require("firebase-functions/v2/https");
+const {log} = require("firebase-functions/logger");
 
 // Importa el Admin SDK de Firebase
-const { initializeApp } = require("firebase-admin/app");
+const {initializeApp} = require("firebase-admin/app");
 
 // Importa las IAs de Google
-const { LanguageServiceClient } = require("@google-cloud/language");
-const { VertexAI } = require("@google-cloud/vertex-ai");
+const {LanguageServiceClient} = require("@google-cloud/language");
+const {VertexAI} = require("@google-cloud/vertexai");
 
 // Inicializa las apps
 initializeApp();
@@ -59,7 +59,7 @@ exports.analyzeSentiment = onDocumentCreated(
 
       try {
         // 3. Llama a la API de IA (Language) y espera la respuesta
-        const [result] = await languageClient.analyzeSentiment({ document });
+        const [result] = await languageClient.analyzeSentiment({document});
         const sentiment = result.documentSentiment;
 
         // Extraemos el puntaje y la magnitud
@@ -103,7 +103,7 @@ exports.generateText = onCall(async (request) => {
   try {
     // 2. Prepara la solicitud para Gemini (Vertex AI)
     const req = {
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      contents: [{role: "user", parts: [{text: prompt}]}],
     };
 
     // 3. Llama al modelo Gemini
@@ -112,7 +112,7 @@ exports.generateText = onCall(async (request) => {
 
     // 4. Devuelve el texto a la app de Flutter
     const text = response.candidates[0].content.parts[0].text;
-    return { text: text };
+    return {text: text};
   } catch (error) {
     log("Error al generar texto con Vertex AI:", error);
     throw new HttpsError(

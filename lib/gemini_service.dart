@@ -5,7 +5,7 @@ class GeminiService {
   // -----------------------------------------------------------------
   // --- ¡PON TU API KEY DE GOOGLE AI AQUÍ! ---
   // -----------------------------------------------------------------
-  static const String _apiKey = 'TU_API_KEY_DE_GOOGLE_AI_AQUI';
+  static const String _apiKey = 'AIzaSyBUV_Tchc_mNkaJvCfDvL_J_jvY15CJEEw';
 
   final GenerativeModel _model;
   static const String _defaultError =
@@ -14,8 +14,8 @@ class GeminiService {
   GeminiService()
       : _model = GenerativeModel(
           // --- ¡CAMBIO FINAL! ---
-          // Usando el modelo 'gemini-1.0-pro' que es más estable y compatible.
-          model: 'gemini-1.0-pro',
+          // Usando el modelo 'gemini-pro' que es más estable y compatible.
+          model: 'gemini-pro',
           apiKey: _apiKey,
         );
 
