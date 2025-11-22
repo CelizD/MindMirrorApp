@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:mindmirrorapp/calendar_screen.dart';
-import 'package:mindmirrorapp/explore_screen.dart';
-import 'package:mindmirrorapp/home_screen.dart';
-import 'package:mindmirrorapp/profile_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mindmirrorapp/journal_editor_screen.dart'; // Importamos el editor
+import 'home_screen.dart';
+import 'explore_screen.dart';
+import 'calendar_screen.dart';
+import 'stats_screen.dart';
+import 'profile_screen.dart';
+import 'settings_screen.dart';
+import 'login_screen.dart';
 
 class MainScaffold extends StatefulWidget {
-  // (NUEVO) Acepta la pregunta generada desde el check-in
   final String? generatedQuestion;
 
-  const MainScaffold({
-    super.key,
-    this.generatedQuestion, // <-- ESTA LÍNEA ES LA SOLUCIÓN
-  });
+  const MainScaffold({super.key, this.generatedQuestion});
 
   @override
   State<MainScaffold> createState() => _MainScaffoldState();
@@ -19,18 +20,17 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
-
-  // (NUEVO) Lista de pantallas que ahora se inicializa
+  
   late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
-    // Pasa la pregunta generada a la HomeScreen
     _screens = [
       HomeScreen(generatedQuestion: widget.generatedQuestion),
       const ExploreScreen(),
       const CalendarScreen(),
+      const StatsScreen(),
       const ProfileScreen(),
     ];
   }
@@ -41,45 +41,63 @@ class _MainScaffoldState extends State<MainScaffold> {
     });
   }
 
+  Future<void> _signOut() async {
+    await FirebaseAuth.instance.signOut();
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Principal',
+      // Barra superior
+      appBar: AppBar(
+        title: const Text('MindMirror', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+               Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+            },
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.explore_outlined),
-            activeIcon: Icon(Icons.explore),
-            label: 'Explorar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined),
-            activeIcon: Icon(Icons.calendar_today),
-            label: 'Calendario',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Perfil',
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _signOut,
           ),
         ],
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        // Estilos para que la barra se vea bien
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.indigo,
-        unselectedItemColor: Colors.grey[600],
-        backgroundColor: Colors.white,
+      ),
+      
+      // Contenido principal
+      body: _screens[_selectedIndex],
+
+      // BOTÓN FLOTANTE PARA ESCRIBIR (NUEVO)
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const JournalEditorScreen()),
+          );
+        },
+        label: const Text("Escribir"),
+        icon: const Icon(Icons.edit),
+        backgroundColor: Colors.indigo,
+      ),
+      
+      // Barra de navegación inferior
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: _onItemTapped,
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Inicio'),
+          NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore), label: 'Explorar'),
+          NavigationDestination(icon: Icon(Icons.calendar_today_outlined), selectedIcon: Icon(Icons.calendar_today), label: 'Diario'),
+          NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Estadísticas'),
+          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Perfil'),
+        ],
       ),
     );
   }
 }
-

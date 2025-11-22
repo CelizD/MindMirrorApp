@@ -3,7 +3,7 @@ import 'package:mindmirrorapp/main_scaffold.dart';
 import 'gemini_service.dart'; // Importa el NUEVO servicio
 
 class CheckInScreen extends StatefulWidget {
-  const CheckInScreen({super.key});
+  CheckInScreen({super.key});
 
   @override
   State<CheckInScreen> createState() => _CheckInScreenState();

@@ -1,8 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-// import 'home_screen.dart'; // Ya no se usa aquí directamente
 import 'login_screen.dart';
-import 'main_scaffold.dart'; // <-- IMPORT clave para la nueva navegación
+import 'check_in_screen.dart'; // <-- Importar el nuevo Wizard
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -35,16 +34,17 @@ class AuthGate extends StatelessWidget {
             );
           }
 
-          // 3️⃣ Si hay un usuario autenticado → ir a MainScaffold (nuestra nueva base)
+          // 3️⃣ Si hay usuario → CheckInScreen (Inicio de sesión exitoso)
           if (snapshot.hasData) {
-            return const MainScaffold(); // <-- ESTE ES EL CAMBIO
+            // Nota: En una app completa, aquí comprobarías si ya hizo el check-in hoy
+            // para no mostrárselo cada vez que abre la app. Por ahora, siempre lo mostramos.
+            return CheckInScreen(); 
           }
 
-          // 4️⃣ Si no hay sesión iniciada → mostrar LoginScreen
+          // 4️⃣ Si no hay sesión → LoginScreen
           return const LoginScreen();
         },
       ),
     );
   }
 }
-
