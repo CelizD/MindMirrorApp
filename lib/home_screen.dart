@@ -130,14 +130,11 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: IconButton(
           icon: const Icon(Icons.menu),
           tooltip: 'Menú',
-          onPressed: () {
-            // TODO: Implementar un Drawer (menú lateral) más adelante
-            ScaffoldMessenger.of(context).showSnackBar(
+          onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                   content: Text('Menú próximamente...'),
                   duration: Duration(seconds: 1)),
-            );
-          },
+            ),
         ),
         actions: const [
           // Los botones de Stats y Settings se movieron a profile_screen.dart

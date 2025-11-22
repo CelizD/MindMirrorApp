@@ -1,68 +1,67 @@
-import 'package:google_generative_ai/google_generative_ai.dart';
-
+// --- Importación ÚNICA Y CORRECTA ---
+// Solo necesitamos el paquete oficial de Firebase AI.
+import 'package:firebase_ai/firebase_ai.dart';
 
 class GeminiService {
-  // -----------------------------------------------------------------
-  // --- ¡PON TU API KEY DE GOOGLE AI AQUÍ! ---
-  // -----------------------------------------------------------------
-  static const String _apiKey = 'AIzaSyBUV_Tchc_mNkaJvCfDvL_J_jvY15CJEEw';
-
+  // --- ¡API KEY ELIMINADA! ---
+  // La autenticación es automática y segura a través de Firebase.
   final GenerativeModel _model;
+  
+  // Usaremos este campo en los errores
   static const String _defaultError =
-      'Ocurrió un error. ¿Revisaste tu API Key y conexión a internet?';
+      'Ocurrió un error. Revisa tu conexión a internet y la configuración de Firebase.';
 
+  // --- Constructor Actualizado ---
   GeminiService()
-      : _model = GenerativeModel(
-          // --- ¡CAMBIO FINAL! ---
-          // Usando el modelo 'gemini-pro' que es más estable y compatible.
-          model: 'gemini-pro',
-          apiKey: _apiKey,
+      // Inicializamos el modelo de forma segura desde la instancia de Firebase
+      : _model = FirebaseGenerativeAI.instance.generativeModel(
+          // --- ¡MODELO ESTABLE! ---
+          // Usamos 'gemini-1.0-pro', el modelo estable
+          // con mayor disponibilidad regional en Vertex AI.
+          model: 'gemini-1.0-pro',
+          
+          // --- ¡NUEVO! Especificamos la ubicación ---
+          // El error muestra que tu proyecto está en 'us-central1'.
+          // Vamos a especificarlo explícitamente.
+          location: 'us-central1',
+          
+          // No se necesita API Key
         );
 
   // --- Función 1: Para la pantalla de Check-in ---
   Future<String> generateCheckInPrompt(
       String energy, String emotion, String mind) async {
-    // --- Comprobación MEJORADA ---
-    if (_apiKey.startsWith('TU_API_KEY')) {
-      return 'Error: API Key de Gemini no configurada en lib/gemini_service.dart';
-    }
-
     try {
       final prompt =
           'Genera una pregunta de diario corta y reflexiva (máx 20 palabras) para alguien que se siente $emotion, con energía $energy y una mente $mind. No incluyas un saludo. Solo la pregunta.';
+
+      // Creamos el 'Content' usando el tipo del paquete 'firebase_ai'
       final content = [Content.text(prompt)];
+
       final response = await _model.generateContent(content);
       return response.text ?? '¿Cómo te sientes hoy?';
     } catch (e) {
-      // --- Error MEJORADO ---
-      // Ahora te dirá el error real de la API
       print('Error al generar prompt de check-in: $e');
-      return 'Error al contactar la IA: ${e.toString()}';
+      // Usamos el campo _defaultError
+      return '$_defaultError\nDetalle: ${e.toString()}';
     }
   }
 
   // --- Función 2: Para el botón "💡" en HomeScreen ---
   Future<String> generateJournalSuggestion(String mood) async {
-    // --- Comprobación MEJORADA ---
-    if (_apiKey.startsWith('TU_API_KEY')) {
-      return 'Error: API Key de Gemini no configurada en lib/gemini_service.dart';
-    }
-
     try {
       final prompt =
           'Genera una pregunta de diario corta y reflexiva (máx 20 palabras) para alguien que se siente "$mood". No incluyas un saludo. Solo la pregunta.';
+
+      // Creamos el 'Content' usando el tipo del paquete 'firebase_ai'
       final content = [Content.text(prompt)];
+
       final response = await _model.generateContent(content);
       return response.text ?? '¿Sobre qué quieres reflexionar hoy?';
     } catch (e) {
-      // --- Error MEJORADO ---
       print('Error al generar sugerencia de diario: $e');
-      return 'Error al contactar la IA: ${e.toString()}';
+      // Usamos el campo _defaultError
+      return '$_defaultError\nDetalle: ${e.toString()}';
     }
   }
-
-  // Esta función estaba en tu archivo de ejemplo, la mantengo
-  // pero no la estamos usando por ahora.
-  Future generatePrompt(String s, String t, String u) async {}
 }
-
