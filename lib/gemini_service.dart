@@ -1,6 +1,6 @@
 // --- Importación ÚNICA Y CORRECTA ---
 // Solo necesitamos el paquete oficial de Firebase AI.
-import 'package:firebase_ai/firebase_ai.dart';
+import 'package:firebase_vertexai/firebase_vertexai.dart';
 
 class GeminiService {
   // --- ¡API KEY ELIMINADA! ---
@@ -14,16 +14,9 @@ class GeminiService {
   // --- Constructor Actualizado ---
   GeminiService()
       // Inicializamos el modelo de forma segura desde la instancia de Firebase
-      : _model = FirebaseGenerativeAI.instance.generativeModel(
-          // --- ¡MODELO ESTABLE! ---
-          // Usamos 'gemini-1.0-pro', el modelo estable
-          // con mayor disponibilidad regional en Vertex AI.
-          model: 'gemini-1.0-pro',
-          
-          // --- ¡NUEVO! Especificamos la ubicación ---
-          // El error muestra que tu proyecto está en 'us-central1'.
-          // Vamos a especificarlo explícitamente.
-          location: 'us-central1',
+      : _model = FirebaseVertexAI.instanceFor(location: 'us-central1').generativeModel(
+          // Usamos 'gemini-2.0-flash-exp', el modelo más reciente
+          model: 'gemini-2.0-flash-exp',
           
           // No se necesita API Key
         );
